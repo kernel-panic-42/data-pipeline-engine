@@ -11,7 +11,7 @@ const chain = <T, U>(result: Result<T, Error>, fn: (data: T) => Result<U, Error>
     }
 };
 
-const pipeline = <T>(initialValue: Result<T, Error>, ...steps: Array<(data) => Result<T, Error>>): Result<T, Error> => {
+const pipeline = <T>(initialValue: Result<T, Error>, ...steps: Array<(data: T) => Result<T, Error>>): Result<T, Error> => {
     let current = initialValue;
 
     for (const step of steps) {
@@ -83,6 +83,14 @@ const processCSVAdvanced = (CSVstring: string, department: string, salaryIncreas
         (records) => increaseSalary(records, salaryIncrease));
 };
 
+const processCSVPipeline = (csvString: string, department: string, salaryIncrease: number): Result<CSVRecord[], Error> => {
+    return pipeline(
+        parseCSV(csvString),
+        (records) => filterByDepartment(records, department),
+        (records) => increaseSalary(records, salaryIncrease)
+    );
+};
+
 
 
 // Test data
@@ -105,7 +113,7 @@ Eve,32,70000,Marketing`;
 
 // Run the test
 console.log('Testing parseCSV...');
-const result = processCSVAdvanced(sampleCSVSalary, 'Engineering', 10);
+const result = processCSVPipeline(sampleCSVSalary, 'Engineering', 10);
 
 if (result.success) {
     console.log('Records:', result.data);
